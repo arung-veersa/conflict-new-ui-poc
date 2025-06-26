@@ -18,12 +18,12 @@ class ChartDataService
     /**
      * Get chart data for pie chart based on CONTYPE grouping
      */
-    public function getChartData(string $valueType = 'CO_TO', array $dateFilters = []): ChartDataViewModel
+    public function getChartData(string $valueType = 'CO_TO', array $filters = []): ChartDataViewModel
     {
         try {
             Log::info('Getting chart data', [
                 'valueType' => $valueType,
-                'dateFilters' => $dateFilters
+                'filters' => $filters
             ]);
             
             // Validate value type
@@ -35,7 +35,7 @@ class ChartDataService
             
             // Get data from repository
             Log::info('Fetching data from repository');
-            $chartData = $this->repository->getChartDataByContype($valueType, $dateFilters);
+            $chartData = $this->repository->getChartDataByContype($valueType, $filters);
             Log::info('Retrieved chart data', ['count' => count($chartData)]);
             
             // Extract labels and data
@@ -70,11 +70,11 @@ class ChartDataService
     /**
      * Get summary statistics
      */
-    public function getSummaryStats(array $dateFilters = []): array
+    public function getSummaryStats(array $filters = []): array
     {
         try {
-            Log::info('Getting summary stats', ['dateFilters' => $dateFilters]);
-            $stats = $this->repository->getSummaryStats($dateFilters);
+            Log::info('Getting summary stats', ['filters' => $filters]);
+            $stats = $this->repository->getSummaryStats($filters);
             Log::info('Retrieved summary stats successfully');
             return $stats;
         } catch (\Exception $e) {

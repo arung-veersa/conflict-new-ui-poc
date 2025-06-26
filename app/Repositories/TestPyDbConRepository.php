@@ -31,19 +31,19 @@ class TestPyDbConRepository
      * Get chart data grouped by CONTYPE with specified value type
      * Optimized for analytical queries with proper error handling
      */
-    public function getChartDataByContype(string $valueType = 'CO_TO', array $dateFilters = []): array
+    public function getChartDataByContype(string $valueType = 'CO_TO', array $filters = []): array
     {
         // Validate value type
         if (!$this->isValidValueType($valueType)) {
             throw new \InvalidArgumentException("Invalid value type: {$valueType}. Valid types: " . implode(', ', self::VALID_VALUE_TYPES));
         }
 
-        $sql = $this->buildChartDataQuery($valueType, $dateFilters);
+        $sql = $this->buildChartDataQuery($valueType, $filters);
         
         try {
             Log::info('Executing chart data query', [
                 'valueType' => $valueType,
-                'dateFilters' => $dateFilters,
+                'filters' => $filters,
                 'sql' => $sql
             ]);
             
@@ -51,7 +51,7 @@ class TestPyDbConRepository
             
             Log::info('Chart data query executed successfully', [
                 'valueType' => $valueType,
-                'dateFilters' => $dateFilters,
+                'filters' => $filters,
                 'count' => count($result)
             ]);
             
@@ -60,7 +60,7 @@ class TestPyDbConRepository
         } catch (QueryException $e) {
             Log::error('Database error in getChartDataByContype', [
                 'valueType' => $valueType,
-                'dateFilters' => $dateFilters,
+                'filters' => $filters,
                 'sql' => $sql,
                 'error' => $e->getMessage(),
                 'errorCode' => $e->getCode()
@@ -73,7 +73,7 @@ class TestPyDbConRepository
      * Build the SQL query for chart data
      * Using unquoted identifiers that Snowflake stores as UPPERCASE
      */
-    private function buildChartDataQuery(string $valueType, array $dateFilters = []): string
+    private function buildChartDataQuery(string $valueType, array $filters = []): string
     {
         $whereConditions = [
             "CONTYPE IS NOT NULL",
@@ -81,9 +81,33 @@ class TestPyDbConRepository
         ];
         
         // Add date filtering conditions
-        $dateConditions = $this->buildDateConditions($dateFilters);
+        $dateConditions = $this->buildDateConditions($filters);
         if (!empty($dateConditions)) {
             $whereConditions = array_merge($whereConditions, $dateConditions);
+        }
+        
+        // Add status filtering conditions  
+        $statusConditions = $this->buildStatusConditions($filters);
+        if (!empty($statusConditions)) {
+            $whereConditions = array_merge($whereConditions, $statusConditions);
+        }
+        
+        // Add visit status filtering conditions
+        $visitStatusConditions = $this->buildVisitStatusConditions($filters);
+        if (!empty($visitStatusConditions)) {
+            $whereConditions = array_merge($whereConditions, $visitStatusConditions);
+        }
+        
+        // Add billed status filtering conditions
+        $billedStatusConditions = $this->buildBilledStatusConditions($filters);
+        if (!empty($billedStatusConditions)) {
+            $whereConditions = array_merge($whereConditions, $billedStatusConditions);
+        }
+        
+        // Add service code filtering conditions
+        $serviceCodeConditions = $this->buildServiceCodeConditions($filters);
+        if (!empty($serviceCodeConditions)) {
+            $whereConditions = array_merge($whereConditions, $serviceCodeConditions);
         }
         
         return "
@@ -168,13 +192,13 @@ class TestPyDbConRepository
      * Get comprehensive summary statistics
      * Optimized single query for better performance
      */
-    public function getSummaryStats(array $dateFilters = []): array
+    public function getSummaryStats(array $filters = []): array
     {
-        $sql = $this->buildSummaryStatsQuery($dateFilters);
+        $sql = $this->buildSummaryStatsQuery($filters);
         
         try {
             Log::info('Executing summary stats query', [
-                'dateFilters' => $dateFilters,
+                'filters' => $filters,
                 'sql' => $sql
             ]);
             
@@ -189,7 +213,7 @@ class TestPyDbConRepository
             
             Log::info('Summary stats retrieved successfully', [
                 'total_records' => $stats['total_records'] ?? 0,
-                'dateFilters' => $dateFilters
+                'filters' => $filters
             ]);
             
             return $stats;
@@ -197,7 +221,7 @@ class TestPyDbConRepository
         } catch (QueryException $e) {
             Log::error('Database error in getSummaryStats', [
                 'sql' => $sql,
-                'dateFilters' => $dateFilters,
+                'filters' => $filters,
                 'error' => $e->getMessage(),
                 'errorCode' => $e->getCode()
             ]);
@@ -209,14 +233,38 @@ class TestPyDbConRepository
      * Build the SQL query for summary statistics
      * Using unquoted identifiers that Snowflake stores as UPPERCASE
      */
-    private function buildSummaryStatsQuery(array $dateFilters = []): string
+    private function buildSummaryStatsQuery(array $filters = []): string
     {
         $whereConditions = ["CONTYPE IS NOT NULL"];
         
         // Add date filtering conditions
-        $dateConditions = $this->buildDateConditions($dateFilters);
+        $dateConditions = $this->buildDateConditions($filters);
         if (!empty($dateConditions)) {
             $whereConditions = array_merge($whereConditions, $dateConditions);
+        }
+        
+        // Add status filtering conditions
+        $statusConditions = $this->buildStatusConditions($filters);
+        if (!empty($statusConditions)) {
+            $whereConditions = array_merge($whereConditions, $statusConditions);
+        }
+        
+        // Add visit status filtering conditions
+        $visitStatusConditions = $this->buildVisitStatusConditions($filters);
+        if (!empty($visitStatusConditions)) {
+            $whereConditions = array_merge($whereConditions, $visitStatusConditions);
+        }
+        
+        // Add billed status filtering conditions
+        $billedStatusConditions = $this->buildBilledStatusConditions($filters);
+        if (!empty($billedStatusConditions)) {
+            $whereConditions = array_merge($whereConditions, $billedStatusConditions);
+        }
+        
+        // Add service code filtering conditions
+        $serviceCodeConditions = $this->buildServiceCodeConditions($filters);
+        if (!empty($serviceCodeConditions)) {
+            $whereConditions = array_merge($whereConditions, $serviceCodeConditions);
         }
         
         return "
@@ -286,16 +334,98 @@ class TestPyDbConRepository
      * Build date filtering conditions for SQL queries
      * Handles from_date and to_date filtering logic
      */
-    private function buildDateConditions(array $dateFilters): array
+    private function buildDateConditions(array $filters): array
     {
         $conditions = [];
         
-        if (!empty($dateFilters['from_date'])) {
-            $conditions[] = "CRDATEUNIQUE >= '{$dateFilters['from_date']}'";
+        if (!empty($filters['from_date'])) {
+            $conditions[] = "CRDATEUNIQUE >= '{$filters['from_date']}'";
         }
         
-        if (!empty($dateFilters['to_date'])) {
-            $conditions[] = "CRDATEUNIQUE <= '{$dateFilters['to_date']}'";
+        if (!empty($filters['to_date'])) {
+            $conditions[] = "CRDATEUNIQUE <= '{$filters['to_date']}'";
+        }
+        
+        return $conditions;
+    }
+
+    /**
+     * Build status filtering conditions for SQL queries
+     * Handles status_filter logic for STATUSFLAG column
+     */
+    private function buildStatusConditions(array $filters): array
+    {
+        $conditions = [];
+        
+        if (!empty($filters['status_filter'])) {
+            $statusFilter = $filters['status_filter'];
+            // Validate status filter value
+            if (in_array($statusFilter, ['U', 'D', 'R'])) {
+                $conditions[] = "STATUSFLAG = '{$statusFilter}'";
+            }
+        }
+        
+        return $conditions;
+    }
+
+    /**
+     * Build visit status filtering conditions for SQL queries
+     * Handles visit_status_filter logic for ISCONFIRMED column
+     */
+    private function buildVisitStatusConditions(array $filters): array
+    {
+        $conditions = [];
+        
+        if (!empty($filters['visit_status_filter'])) {
+            $visitStatusFilter = $filters['visit_status_filter'];
+            // Validate visit status filter value
+            if (in_array($visitStatusFilter, ['Confirmed', 'Scheduled'])) {
+                $conditions[] = "ISCONFIRMED = '{$visitStatusFilter}'";
+            }
+        }
+        
+        return $conditions;
+    }
+
+    /**
+     * Build billed status filtering conditions for SQL queries
+     * Handles billed_status_filter logic for BILLED column
+     */
+    private function buildBilledStatusConditions(array $filters): array
+    {
+        $conditions = [];
+        
+        if (!empty($filters['billed_status_filter'])) {
+            $billedStatusFilter = $filters['billed_status_filter'];
+            
+            if ($billedStatusFilter === 'yes') {
+                // Yes matches BILLED = 'yes' OR null
+                $conditions[] = "(BILLED = 'yes' OR BILLED IS NULL)";
+            } elseif ($billedStatusFilter === 'no') {
+                // No matches BILLED = 'no'
+                $conditions[] = "BILLED = 'no'";
+            }
+        }
+        
+        return $conditions;
+    }
+
+    /**
+     * Build service code filtering conditions for SQL queries
+     * Handles service_code_filter logic for SERVICECODE column with case-insensitive LIKE search
+     */
+    private function buildServiceCodeConditions(array $filters): array
+    {
+        $conditions = [];
+        
+        if (!empty($filters['service_code_filter'])) {
+            $serviceCodeFilter = $filters['service_code_filter'];
+            
+            // Escape single quotes in the search term to prevent SQL injection
+            $escapedFilter = str_replace("'", "''", $serviceCodeFilter);
+            
+            // Perform case-insensitive LIKE search with wildcards
+            $conditions[] = "UPPER(SERVICECODE) LIKE UPPER('%{$escapedFilter}%')";
         }
         
         return $conditions;
