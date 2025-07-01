@@ -5,12 +5,12 @@ namespace App\Models\Entities;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Entity Model for TEST_PY_DB_CON table
+ * Entity Model for TEST_PY_DB_CON2 table
  * Represents the database structure only - no business logic
  */
 class TestPyDbCon extends Model
 {
-    protected $table = 'TEST_PY_DB_CON';
+    protected $table = 'TEST_PY_DB_CON2';
     protected $connection = 'snowflake';
     
     // Disable timestamps as this is a view/table without created_at/updated_at
@@ -22,10 +22,9 @@ class TestPyDbCon extends Model
         'CRDATEUNIQUE',
         'CONTYPE',
         'CONTYPES',
-        'SERVICECODE',
+        'COSTTYPE',
+        'VISITTYPE',
         'STATUSFLAG',
-        'BILLED',
-        'ISCONFIRMED',
         'CO_TO',
         'CO_SP',
         'CO_OP',

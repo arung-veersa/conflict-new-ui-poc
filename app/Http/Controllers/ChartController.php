@@ -37,9 +37,8 @@ class ChartController extends Controller
             $fromDate = $request->input('from_date');
             $toDate = $request->input('to_date');
             $statusFilter = $request->input('status_filter');
-            $visitStatusFilter = $request->input('visit_status_filter');
-            $billedStatusFilter = $request->input('billed_status_filter');
-            $serviceCodeFilter = $request->input('service_code_filter');
+            $costTypeFilter = $request->input('cost_type_filter');
+            $visitTypeFilter = $request->input('visit_type_filter');
             
             // Validate date inputs
             if ($fromDate && $toDate && $fromDate >= $toDate) {
@@ -57,27 +56,19 @@ class ChartController extends Controller
                 ], 400);
             }
             
-            // Validate visit status filter
-            if ($visitStatusFilter && !in_array($visitStatusFilter, ['Confirmed', 'Scheduled'])) {
+            // Validate cost type filter
+            if ($costTypeFilter && $costTypeFilter !== 'all' && !in_array($costTypeFilter, ['Avoidance', 'Recovery'])) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Invalid visit status filter value'
+                    'message' => 'Invalid cost type filter value'
                 ], 400);
             }
             
-            // Validate billed status filter
-            if ($billedStatusFilter && !in_array($billedStatusFilter, ['yes', 'no'])) {
+            // Validate visit type filter
+            if ($visitTypeFilter && $visitTypeFilter !== 'all' && !in_array($visitTypeFilter, ['Scheduled', 'Confirmed', 'Billed', 'Paid'])) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Invalid billed status filter value'
-                ], 400);
-            }
-            
-            // Validate service code filter (basic length and character validation)
-            if ($serviceCodeFilter && (strlen($serviceCodeFilter) > 50 || strlen(trim($serviceCodeFilter)) === 0)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Service code filter must be between 1 and 50 characters'
+                    'message' => 'Invalid visit type filter value'
                 ], 400);
             }
             
@@ -85,9 +76,8 @@ class ChartController extends Controller
                 'from_date' => $fromDate,
                 'to_date' => $toDate,
                 'status_filter' => $statusFilter,
-                'visit_status_filter' => $visitStatusFilter,
-                'billed_status_filter' => $billedStatusFilter,
-                'service_code_filter' => $serviceCodeFilter ? trim($serviceCodeFilter) : null
+                'cost_type_filter' => $costTypeFilter,
+                'visit_type_filter' => $visitTypeFilter
             ];
             
             $chartData = $this->chartService->getChartData($valueType, $filters);

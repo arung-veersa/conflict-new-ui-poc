@@ -92,22 +92,16 @@ class TestPyDbConRepository
             $whereConditions = array_merge($whereConditions, $statusConditions);
         }
         
-        // Add visit status filtering conditions
-        $visitStatusConditions = $this->buildVisitStatusConditions($filters);
-        if (!empty($visitStatusConditions)) {
-            $whereConditions = array_merge($whereConditions, $visitStatusConditions);
+        // Add cost type filtering conditions
+        $costTypeConditions = $this->buildCostTypeConditions($filters);
+        if (!empty($costTypeConditions)) {
+            $whereConditions = array_merge($whereConditions, $costTypeConditions);
         }
         
-        // Add billed status filtering conditions
-        $billedStatusConditions = $this->buildBilledStatusConditions($filters);
-        if (!empty($billedStatusConditions)) {
-            $whereConditions = array_merge($whereConditions, $billedStatusConditions);
-        }
-        
-        // Add service code filtering conditions
-        $serviceCodeConditions = $this->buildServiceCodeConditions($filters);
-        if (!empty($serviceCodeConditions)) {
-            $whereConditions = array_merge($whereConditions, $serviceCodeConditions);
+        // Add visit type filtering conditions
+        $visitTypeConditions = $this->buildVisitTypeConditions($filters);
+        if (!empty($visitTypeConditions)) {
+            $whereConditions = array_merge($whereConditions, $visitTypeConditions);
         }
         
         return "
@@ -235,7 +229,7 @@ class TestPyDbConRepository
      */
     private function buildSummaryStatsQuery(array $filters = []): string
     {
-        $whereConditions = ["CONTYPE IS NOT NULL"];
+        $whereConditions = ["1=1"]; // Always true condition as base
         
         // Add date filtering conditions
         $dateConditions = $this->buildDateConditions($filters);
@@ -249,22 +243,16 @@ class TestPyDbConRepository
             $whereConditions = array_merge($whereConditions, $statusConditions);
         }
         
-        // Add visit status filtering conditions
-        $visitStatusConditions = $this->buildVisitStatusConditions($filters);
-        if (!empty($visitStatusConditions)) {
-            $whereConditions = array_merge($whereConditions, $visitStatusConditions);
+        // Add cost type filtering conditions
+        $costTypeConditions = $this->buildCostTypeConditions($filters);
+        if (!empty($costTypeConditions)) {
+            $whereConditions = array_merge($whereConditions, $costTypeConditions);
         }
         
-        // Add billed status filtering conditions
-        $billedStatusConditions = $this->buildBilledStatusConditions($filters);
-        if (!empty($billedStatusConditions)) {
-            $whereConditions = array_merge($whereConditions, $billedStatusConditions);
-        }
-        
-        // Add service code filtering conditions
-        $serviceCodeConditions = $this->buildServiceCodeConditions($filters);
-        if (!empty($serviceCodeConditions)) {
-            $whereConditions = array_merge($whereConditions, $serviceCodeConditions);
+        // Add visit type filtering conditions
+        $visitTypeConditions = $this->buildVisitTypeConditions($filters);
+        if (!empty($visitTypeConditions)) {
+            $whereConditions = array_merge($whereConditions, $visitTypeConditions);
         }
         
         return "
@@ -369,18 +357,18 @@ class TestPyDbConRepository
     }
 
     /**
-     * Build visit status filtering conditions for SQL queries
-     * Handles visit_status_filter logic for ISCONFIRMED column
+     * Build cost type filtering conditions for SQL queries
+     * Handles cost_type_filter logic for COSTTYPE column
      */
-    private function buildVisitStatusConditions(array $filters): array
+    private function buildCostTypeConditions(array $filters): array
     {
         $conditions = [];
         
-        if (!empty($filters['visit_status_filter'])) {
-            $visitStatusFilter = $filters['visit_status_filter'];
-            // Validate visit status filter value
-            if (in_array($visitStatusFilter, ['Confirmed', 'Scheduled'])) {
-                $conditions[] = "ISCONFIRMED = '{$visitStatusFilter}'";
+        if (!empty($filters['cost_type_filter']) && $filters['cost_type_filter'] !== 'all') {
+            $costTypeFilter = $filters['cost_type_filter'];
+            // Validate cost type filter value
+            if (in_array($costTypeFilter, ['Avoidance', 'Recovery'])) {
+                $conditions[] = "COSTTYPE = '{$costTypeFilter}'";
             }
         }
         
@@ -388,44 +376,19 @@ class TestPyDbConRepository
     }
 
     /**
-     * Build billed status filtering conditions for SQL queries
-     * Handles billed_status_filter logic for BILLED column
+     * Build visit type filtering conditions for SQL queries
+     * Handles visit_type_filter logic for VISITTYPE column
      */
-    private function buildBilledStatusConditions(array $filters): array
+    private function buildVisitTypeConditions(array $filters): array
     {
         $conditions = [];
         
-        if (!empty($filters['billed_status_filter'])) {
-            $billedStatusFilter = $filters['billed_status_filter'];
-            
-            if ($billedStatusFilter === 'yes') {
-                // Yes matches BILLED = 'yes' OR null
-                $conditions[] = "(BILLED = 'yes' OR BILLED IS NULL)";
-            } elseif ($billedStatusFilter === 'no') {
-                // No matches BILLED = 'no'
-                $conditions[] = "BILLED = 'no'";
+        if (!empty($filters['visit_type_filter']) && $filters['visit_type_filter'] !== 'all') {
+            $visitTypeFilter = $filters['visit_type_filter'];
+            // Validate visit type filter value
+            if (in_array($visitTypeFilter, ['Scheduled', 'Confirmed', 'Billed', 'Paid'])) {
+                $conditions[] = "VISITTYPE = '{$visitTypeFilter}'";
             }
-        }
-        
-        return $conditions;
-    }
-
-    /**
-     * Build service code filtering conditions for SQL queries
-     * Handles service_code_filter logic for SERVICECODE column with case-insensitive LIKE search
-     */
-    private function buildServiceCodeConditions(array $filters): array
-    {
-        $conditions = [];
-        
-        if (!empty($filters['service_code_filter'])) {
-            $serviceCodeFilter = $filters['service_code_filter'];
-            
-            // Escape single quotes in the search term to prevent SQL injection
-            $escapedFilter = str_replace("'", "''", $serviceCodeFilter);
-            
-            // Perform case-insensitive LIKE search with wildcards
-            $conditions[] = "UPPER(SERVICECODE) LIKE UPPER('%{$escapedFilter}%')";
         }
         
         return $conditions;

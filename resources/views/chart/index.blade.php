@@ -129,25 +129,22 @@
                             </select>
                         </div>
                         <div class="mb-2">
-                            <label for="visitStatusFilter" class="form-label">Visit Status:</label>
-                            <select id="visitStatusFilter" class="form-select">
+                            <label for="costTypeFilter" class="form-label">Cost Type:</label>
+                            <select id="costTypeFilter" class="form-select">
                                 <option value="all" selected>All</option>
-                                <option value="Confirmed">Confirmed</option>
+                                <option value="Avoidance">Avoidance</option>
+                                <option value="Recovery">Recovery</option>
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <label for="visitTypeFilter" class="form-label">Visit Type:</label>
+                            <select id="visitTypeFilter" class="form-select">
+                                <option value="all" selected>All</option>
                                 <option value="Scheduled">Scheduled</option>
+                                <option value="Confirmed">Confirmed</option>
+                                <option value="Billed">Billed</option>
+                                <option value="Paid">Paid</option>
                             </select>
-                        </div>
-                        <div class="mb-2">
-                            <label for="billedStatusFilter" class="form-label">Billed Status:</label>
-                            <select id="billedStatusFilter" class="form-select">
-                                <option value="all" selected>All</option>
-                                <option value="yes">Yes</option>
-                                <option value="no">No</option>
-                            </select>
-                        </div>
-                        <div class="mb-2">
-                            <label for="serviceCodeFilter" class="form-label">Service Code:</label>
-                            <input type="text" id="serviceCodeFilter" class="form-control" placeholder="Enter service code..." maxlength="50">
-                            <small class="form-text text-muted">Case-insensitive search</small>
                         </div>
                         <div id="dateError" class="text-danger small" style="display: none;"></div>
                     </div>
@@ -283,9 +280,8 @@
             const fromDate = document.getElementById('fromDate').value;
             const toDate = document.getElementById('toDate').value;
             const statusFilter = document.getElementById('statusFilter').value;
-            const visitStatusFilter = document.getElementById('visitStatusFilter').value;
-            const billedStatusFilter = document.getElementById('billedStatusFilter').value;
-            const serviceCodeFilter = document.getElementById('serviceCodeFilter').value;
+            const costTypeFilter = document.getElementById('costTypeFilter').value;
+            const visitTypeFilter = document.getElementById('visitTypeFilter').value;
             const loadingDiv = document.querySelector('.loading');
             const loadBtn = document.getElementById('loadBtn');
             const applyBtn = document.getElementById('applyFiltersBtn');
@@ -307,9 +303,8 @@
             if (fromDate) requestData.from_date = fromDate;
             if (toDate) requestData.to_date = toDate;
             if (statusFilter && statusFilter !== 'all') requestData.status_filter = statusFilter;
-            if (visitStatusFilter && visitStatusFilter !== 'all') requestData.visit_status_filter = visitStatusFilter;
-            if (billedStatusFilter && billedStatusFilter !== 'all') requestData.billed_status_filter = billedStatusFilter;
-            if (serviceCodeFilter) requestData.service_code_filter = serviceCodeFilter;
+            if (costTypeFilter && costTypeFilter !== 'all') requestData.cost_type_filter = costTypeFilter;
+            if (visitTypeFilter && visitTypeFilter !== 'all') requestData.visit_type_filter = visitTypeFilter;
             
             // Use jQuery AJAX instead of fetch for better compatibility
             $.ajax({

@@ -62,7 +62,7 @@ class ChartTest extends TestCase
         // Mock the repository
         $mockRepository = Mockery::mock(TestPyDbConRepository::class);
         $mockRepository->shouldReceive('getChartDataByContype')
-            ->with('CO_TO')
+            ->with('CO_TO', [])
             ->andReturn([
                 ['contype' => 'Type1', 'total_value' => 100],
                 ['contype' => 'Type2', 'total_value' => 200]
