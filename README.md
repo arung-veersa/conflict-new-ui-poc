@@ -33,63 +33,114 @@ The application connects to the `TEST_PY_DB_CON` table with the following key co
 ### Prerequisites
 - PHP 8.2+
 - Composer
-- Snowflake ODBC Driver
+- Snowflake ODBC Driver configured and working
 - Node.js & NPM (for asset compilation)
 
-### Environment Configuration
+### Quick Start (After Fresh Pull)
 
-Create a `.env` file with the following Snowflake connection details:
+Follow these steps to set up the project after cloning/pulling from the repository:
 
-```env
-APP_NAME="Snowflake Data Visualization"
-APP_ENV=production
-APP_KEY=base64:your-app-key-here
-APP_DEBUG=false
-APP_URL=http://your-domain.com
+1. **Clone the Repository** (if not already done):
+   ```bash
+   git clone <repository-url>
+   cd conflict-new-ui-poc
+   ```
 
-# Database Configuration
-DB_CONNECTION=snowflake
-DB_HOST=your-account.snowflakecomputing.com
-DB_PORT=443
-DB_DATABASE=CONFLICTREPORT_SANDBOX
-DB_USERNAME=CONFLICTREPORT_USER
-DB_PASSWORD=
-DB_WAREHOUSE=CONFLICTREPORT_APP_WH
-
-# Snowflake Authentication
-SNOWFLAKE_ACCOUNT=your-account
-SNOWFLAKE_PRIVATE_KEY_PATH=/path/to/private/key.pem
-SNOWFLAKE_PRIVATE_KEY_PASSPHRASE=your-passphrase
-```
-
-### Installation Steps
-
-1. **Install Dependencies**:
+2. **Install PHP Dependencies**:
    ```bash
    composer install
+   ```
+
+3. **Install Node.js Dependencies**:
+   ```bash
    npm install
    ```
 
-2. **Generate Application Key**:
+4. **Environment Setup**:
+   - Copy the `.env.example` file to `.env` (if `.env` doesn't exist):
+     ```bash
+     cp .env.example .env
+     ```
+   - Update the `.env` file with your Snowflake connection details (see below)
+
+5. **Generate Application Key**:
    ```bash
    php artisan key:generate
    ```
 
-3. **Compile Assets**:
+6. **Build Frontend Assets**:
    ```bash
    npm run build
    ```
 
-4. **Test Connection**:
+7. **Start the Development Server**:
+   ```bash
+   php artisan serve
+   ```
+
+8. **Access the Application**:
+   - Open your browser and go to: `http://localhost:8000`
+
+### Environment Configuration
+
+Update your `.env` file with the following Snowflake connection details:
+
+```env
+APP_NAME="Snowflake Data Visualization"
+APP_ENV=local
+APP_KEY=base64:your-app-key-here
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+# Database Configuration - Snowflake via ODBC
+DB_CONNECTION=snowflake
+SNOWFLAKE_ODBC_DSN=your-dsn-name
+SNOWFLAKE_HOST=your-account-id
+SNOWFLAKE_PORT=443
+SNOWFLAKE_DATABASE=CONFLICTREPORT_SANDBOX
+SNOWFLAKE_SCHEMA=PUBLIC
+SNOWFLAKE_WAREHOUSE=CONFLICTREPORT_APP_WH
+SNOWFLAKE_USERNAME=CONFLICTREPORT_USER
+SNOWFLAKE_ROLE=ACCOUNTADMIN
+SNOWFLAKE_AUTH_METHOD=keypair
+SNOWFLAKE_PRIVATE_KEY_FILE=C:/path/to/your/private/key.pem
+
+# Alternative: Password Authentication
+# SNOWFLAKE_AUTH_METHOD=password
+# SNOWFLAKE_PASSWORD=your-password
+
+# SSL Configuration (for development)
+SNOWFLAKE_SSL_VERIFY=false
+
+# Laravel Configuration
+LOG_CHANNEL=stack
+LOG_LEVEL=debug
+SESSION_DRIVER=file
+CACHE_STORE=file
+QUEUE_CONNECTION=sync
+```
+
+### Testing the Setup
+
+1. **Test Database Connection**:
    ```bash
    php artisan tinker
    >>> DB::select('SELECT CURRENT_TIMESTAMP()');
    ```
 
-5. **Start Application**:
-   ```bash
-   php artisan serve
-   ```
+2. **Verify Application**:
+   - Visit `http://localhost:8000`
+   - The dashboard should load without errors
+   - Try loading chart data to verify Snowflake connectivity
+
+### Development Commands
+
+- **Start Development Server**: `php artisan serve`
+- **Build Assets for Development**: `npm run dev`
+- **Watch Assets for Changes**: `npm run dev -- --watch`
+- **Run Tests**: `php artisan test`
+- **Clear Cache**: `php artisan cache:clear`
+- **Clear Config**: `php artisan config:clear`
 
 ## 📈 Usage
 
